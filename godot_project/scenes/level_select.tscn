@@ -1,0 +1,296 @@
+[gd_scene format=3 uid="uid://b8fj2s6d5f4h4"]
+
+[ext_resource type="Script" path="res://scripts/level_select.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://bk5pp5f5rfd0s" path="res://Alice-Regular.ttf" id="2_alice"]
+[ext_resource type="Shader" path="res://shaders/sinister_blob.gdshader" id="3_blob"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_blob"]
+shader = ExtResource("3_blob")
+shader_parameter/wobble_speed = 1.0
+shader_parameter/wobble_amount = 0.1
+shader_parameter/distortion_strength = 1.0
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_vert"]
+color = Color(0, 0, 0, 1)
+thickness = 6
+vertical = true
+
+[sub_resource type="Curve" id="Curve_particles"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -2.8, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_particles"]
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0, 0, 0, 1)
+
+[node name="Game" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 1)
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="LeftColumn" type="Control" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+
+[node name="ScoreLabel" type="Label" parent="HBox/LeftColumn"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 100.0
+offset_bottom = 170.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 64
+text = "0 ESSENCE"
+horizontal_alignment = 1
+
+[node name="CPSLabel" type="Label" parent="HBox/LeftColumn"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 180.0
+offset_bottom = 220.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 32
+text = "per second: 0.0"
+horizontal_alignment = 1
+
+[node name="EntityContainer" type="Control" parent="HBox/LeftColumn"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -190.0
+offset_top = -190.0
+offset_right = 190.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Entity" type="ColorRect" parent="HBox/LeftColumn/EntityContainer"]
+material = SubResource("ShaderMaterial_blob")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(190, 190)
+
+[node name="Hitbox" type="Button" parent="HBox/LeftColumn/EntityContainer/Entity"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VSeparator1" type="VSeparator" parent="HBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_vert")
+
+[node name="CenterColumn" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
+
+[node name="HeaderContainer" type="HBoxContainer" parent="HBox/CenterColumn"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DashboardBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 24
+text = "Dashboard"
+flat = true
+
+[node name="SaveBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 24
+text = "Save"
+flat = true
+
+[node name="NewsPanel" type="PanelContainer" parent="HBox/CenterColumn/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NewsLabel" type="Label" parent="HBox/CenterColumn/HeaderContainer/NewsPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 20
+text = "News Ticker Loading..."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="ExportBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 24
+text = "Export"
+flat = true
+
+[node name="SupportBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 24
+text = "Buy me a coffee"
+flat = true
+
+[node name="HSeparator" type="HSeparator" parent="HBox/CenterColumn"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HBox/CenterColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VisualsContainer" type="VBoxContainer" parent="HBox/CenterColumn/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 15
+alignment = 2
+
+[node name="VSeparator2" type="VSeparator" parent="HBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_vert")
+
+[node name="RightColumn" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+
+[node name="StoreLabel" type="Label" parent="HBox/RightColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 48
+text = "STORE"
+horizontal_alignment = 1
+
+[node name="StoreList" type="ScrollContainer" parent="HBox/RightColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StoreContainer" type="VBoxContainer" parent="HBox/RightColumn/StoreList"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="DashboardPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="DashboardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="DashboardPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 48
+text = "- DASHBOARD -"
+horizontal_alignment = 1
+
+[node name="AchievementsLabel" type="Label" parent="DashboardPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 32
+text = "ACHIEVEMENTS"
+horizontal_alignment = 1
+
+[node name="BuffsContainer" type="HFlowContainer" parent="DashboardPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="CloseBtn" type="Button" parent="DashboardPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_alice")
+theme_override_font_sizes/font_size = 32
+text = "[close]"
+flat = true
+
+[node name="ClickParticles" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 16
+lifetime = 0.6
+one_shot = true
+explosiveness = 0.9
+randomness = 0.5
+direction = Vector2(0, -1)
+spread = 60.0
+gravity = Vector2(0, 300)
+initial_velocity_min = 150.0
+initial_velocity_max = 300.0
+scale_amount_min = 6.0
+scale_amount_max = 12.0
+scale_amount_curve = SubResource("Curve_particles")
+color = Color(0, 0, 0, 0.8)
+color_ramp = SubResource("Gradient_particles")
+
+[connection signal="pressed" from="HBox/CenterColumn/HeaderContainer/DashboardBtn" to="." method="_on_dashboard_pressed"]
+[connection signal="pressed" from="HBox/CenterColumn/HeaderContainer/SaveBtn" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="HBox/CenterColumn/HeaderContainer/ExportBtn" to="." method="_on_export_pressed"]
+[connection signal="pressed" from="HBox/CenterColumn/HeaderContainer/SupportBtn" to="." method="_on_support_pressed"]
+[connection signal="gui_input" from="HBox/LeftColumn/EntityContainer/Entity/Hitbox" to="." method="_on_entity_gui_input"]
+[connection signal="pressed" from="DashboardPanel/VBox/CloseBtn" to="." method="_on_dashboard_close_pressed"]

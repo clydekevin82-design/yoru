@@ -4,6 +4,10 @@ extends Control
 @export var tension: float = 0.025
 @export var dampening: float = 0.025
 @export var spread: float = 0.25
+@export var wind_strength: float = 12.0
+@export var wind_speed: float = 1.0
+@export var wind_spatial_frequency: float = 0.22
+@export var wind_turbulence: float = 0.65
 
 var target_fill_percent: float = 0.0
 var max_height_pixels: float = 100.0
@@ -13,8 +17,11 @@ var springs: Array[float] = [] # Vertical offset from baseline
 var spring_velocities: Array[float] = []
 var num_springs: int = 100
 var spread_iterations: int = 8
+var wind_time: float = 0.0
+var wind_phase_offset: float = 0.0
 
 func _ready():
+	wind_phase_offset = randf_range(0.0, TAU)
 	_initialize_springs()
 
 func _initialize_springs():
@@ -31,9 +38,17 @@ func _process(delta):
 	_update_springs(delta)
 	queue_redraw()
 
-func _update_springs(_delta):
+func _update_springs(delta):
+	wind_time += delta * wind_speed
+	var gust = sin((wind_time * 0.35) + (wind_phase_offset * 0.7))
+
 	# Hooke's Law
 	for i in range(num_springs):
+		var wave = sin((float(i) * wind_spatial_frequency) + wind_time + wind_phase_offset)
+		var turbulence = sin((float(i) * wind_spatial_frequency * 2.35) - (wind_time * 1.7) + (wind_phase_offset * 1.2))
+		var wind_force = (wave + (gust * 0.4) + (turbulence * wind_turbulence)) * wind_strength
+		spring_velocities[i] += wind_force * delta
+
 		var x = springs[i] # Displacement
 		var loss = - dampening * spring_velocities[i]
 		var force = - tension * x + loss

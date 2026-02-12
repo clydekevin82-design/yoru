@@ -28,7 +28,11 @@ const BLOOD_FILL_CAP = 90000.0
 var shake_intensity: float = 0.0
 var diagnosis_streak: int = 0
 var diagnosis_multiplier: float = 1.0
+<<<<<<< codex/add-medical-chart-theme-option
+var anatomy_overlay: Node2D = null
+=======
 var anatomy_overlay: Node2D
+>>>>>>> main
 var default_entity_material: Material
 
 var achievements = {
@@ -153,6 +157,8 @@ var news_strings = [
 const FloatingTextScript = preload("res://scripts/floating_text.gd")
 
 func _ready():
+	ThemeManager.theme_changed.connect(_apply_theme)
+	default_entity_material = entity.material
 	_load_game()
 	_populate_store()
 	_start_news_ticker()
@@ -162,6 +168,35 @@ func _ready():
 	entity.scale = Vector2.ZERO
 	var tween = create_tween()
 	tween.tween_property(entity, "scale", Vector2.ONE, 1.0).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+
+
+func _apply_theme(_theme_id: String) -> void:
+	var palette: Dictionary = ThemeManager.get_palette()
+	$Background.color = palette["background"]
+	score_label.add_theme_color_override("font_color", palette["text"])
+	cps_label.add_theme_color_override("font_color", palette["muted_text"])
+	news_label.add_theme_color_override("font_color", palette["text"])
+	entity.color = palette["blood"]
+	blood_fill.color = palette["blood"]
+
+	for button in [$HBox/CenterColumn/HeaderContainer/DashboardBtn, $HBox/CenterColumn/HeaderContainer/SaveBtn, $HBox/CenterColumn/HeaderContainer/ExportBtn]:
+		button.add_theme_color_override("font_color", palette["text"])
+
+	var news_style := StyleBoxFlat.new()
+	news_style.bg_color = palette["surface"]
+	news_style.border_color = palette["line"]
+	news_style.border_width_left = 2
+	news_style.border_width_top = 2
+	news_style.border_width_right = 2
+	news_style.border_width_bottom = 2
+	$HBox/CenterColumn/HeaderContainer/NewsPanel.add_theme_stylebox_override("panel", news_style)
+
+	_configure_layout_for_theme()
+	_refresh_store_texts()
+	_rebuild_visual_icons()
+	_build_entity_art()
+	_update_ui()
 
 func _process(delta):
 	# Passive Income
@@ -322,15 +357,38 @@ func _configure_layout_for_theme() -> void:
 		left_column.size_flags_stretch_ratio = 0.38
 		center_column.size_flags_stretch_ratio = 0.36
 		right_column.size_flags_stretch_ratio = 0.26
+<<<<<<< codex/add-medical-chart-theme-option
+		# Keep separators in place and only reorder main columns.
+		if right_column.get_index() != 0:
+			root_hbox.move_child(right_column, 0)
+		if left_column.get_index() != 1:
+			root_hbox.move_child(left_column, 1)
+		if center_column.get_index() != root_hbox.get_child_count() - 2:
+			root_hbox.move_child(center_column, root_hbox.get_child_count() - 2)
+=======
 		if root_hbox.get_child(0) != right_column:
 			root_hbox.move_child(right_column, 0)
 			root_hbox.move_child(left_column, 1)
 			root_hbox.move_child(center_column, 3)
+>>>>>>> main
 		news_label.text = "Plate annotations loading..."
 	else:
 		left_column.size_flags_stretch_ratio = 0.3
 		center_column.size_flags_stretch_ratio = 0.4
 		right_column.size_flags_stretch_ratio = 0.3
+<<<<<<< codex/add-medical-chart-theme-option
+		if left_column.get_index() != 0:
+			root_hbox.move_child(left_column, 0)
+		if center_column.get_index() != 2:
+			root_hbox.move_child(center_column, 2)
+		if right_column.get_index() != root_hbox.get_child_count() - 1:
+			root_hbox.move_child(right_column, root_hbox.get_child_count() - 1)
+
+func _build_entity_art() -> void:
+	if is_instance_valid(anatomy_overlay):
+		anatomy_overlay.queue_free()
+		anatomy_overlay = null
+=======
 		if root_hbox.get_child(0) != left_column:
 			root_hbox.move_child(left_column, 0)
 			root_hbox.move_child(center_column, 2)
@@ -339,6 +397,7 @@ func _configure_layout_for_theme() -> void:
 func _build_entity_art() -> void:
 	if anatomy_overlay and is_instance_valid(anatomy_overlay):
 		anatomy_overlay.queue_free()
+>>>>>>> main
 	if not ThemeManager.is_medical():
 		entity.material = default_entity_material
 		return
@@ -421,7 +480,7 @@ func _click_entity():
 	tween.tween_property(entity, "scale", Vector2(1.1, 1.1), 0.05)
 	tween.tween_property(entity, "scale", Vector2(1.0, 1.0), 0.1)
 	
-	_spawn_floating_text("+1", get_global_mouse_position())
+	_spawn_floating_text("+%d" % int(_get_click_gain()), get_global_mouse_position())
 	click_particles.global_position = get_global_mouse_position()
 	click_particles.emitting = true
 

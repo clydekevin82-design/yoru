@@ -1,7 +1,5 @@
 extends Control
 
-const THEME_ORDER := ["classic", "medical_chart"]
-
 @onready var background: ColorRect = $Background
 @onready var title_label: Label = $Title
 @onready var subtitle_label: Label = $Subtitle
@@ -13,10 +11,7 @@ const THEME_ORDER := ["classic", "medical_chart"]
 @onready var accent_line: ColorRect = $AccentLine
 @onready var hatch_overlay: ColorRect = $EtchingOverlay
 
-var _is_syncing_option := false
-
 func _ready() -> void:
-	theme_option.focus_mode = Control.FOCUS_NONE
 	_populate_theme_options()
 	ThemeManager.theme_changed.connect(_apply_theme)
 	theme_option.item_selected.connect(_on_theme_selected)
@@ -28,28 +23,20 @@ func _ready() -> void:
 func _populate_theme_options() -> void:
 	theme_option.clear()
 	var labels: Dictionary = ThemeManager.get_theme_labels()
-	for theme_id in THEME_ORDER:
-		if labels.has(theme_id):
-			theme_option.add_item(labels[theme_id])
-			theme_option.set_item_metadata(theme_option.item_count - 1, theme_id)
-	_select_theme_option(ThemeManager.current_theme)
-
-func _select_theme_option(theme_id: String) -> void:
-	_is_syncing_option = true
+	for theme_id in labels.keys():
+		theme_option.add_item(labels[theme_id])
+		theme_option.set_item_metadata(theme_option.item_count - 1, theme_id)
+	
 	for i in range(theme_option.item_count):
-		if str(theme_option.get_item_metadata(i)) == theme_id:
+		if theme_option.get_item_metadata(i) == ThemeManager.current_theme:
 			theme_option.select(i)
 			break
-	_is_syncing_option = false
 
 func _on_theme_selected(index: int) -> void:
-	if _is_syncing_option:
-		return
 	var selected_theme = str(theme_option.get_item_metadata(index))
 	ThemeManager.set_theme(selected_theme)
 
 func _apply_theme(theme_id: String) -> void:
-	_select_theme_option(theme_id)
 	var palette: Dictionary = ThemeManager.get_palette()
 	background.color = palette["background"]
 	accent_line.color = palette["line"]

@@ -28,11 +28,7 @@ const BLOOD_FILL_CAP = 90000.0
 var shake_intensity: float = 0.0
 var diagnosis_streak: int = 0
 var diagnosis_multiplier: float = 1.0
-<<<<<<< codex/add-medical-chart-theme-option
 var anatomy_overlay: Node2D = null
-=======
-var anatomy_overlay: Node2D
->>>>>>> main
 var default_entity_material: Material
 
 var achievements = {
@@ -168,7 +164,6 @@ func _ready():
 	entity.scale = Vector2.ZERO
 	var tween = create_tween()
 	tween.tween_property(entity, "scale", Vector2.ONE, 1.0).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-
 
 
 func _apply_theme(_theme_id: String) -> void:
@@ -357,38 +352,15 @@ func _configure_layout_for_theme() -> void:
 		left_column.size_flags_stretch_ratio = 0.38
 		center_column.size_flags_stretch_ratio = 0.36
 		right_column.size_flags_stretch_ratio = 0.26
-<<<<<<< codex/add-medical-chart-theme-option
-		# Keep separators in place and only reorder main columns.
-		if right_column.get_index() != 0:
-			root_hbox.move_child(right_column, 0)
-		if left_column.get_index() != 1:
-			root_hbox.move_child(left_column, 1)
-		if center_column.get_index() != root_hbox.get_child_count() - 2:
-			root_hbox.move_child(center_column, root_hbox.get_child_count() - 2)
-=======
 		if root_hbox.get_child(0) != right_column:
 			root_hbox.move_child(right_column, 0)
 			root_hbox.move_child(left_column, 1)
 			root_hbox.move_child(center_column, 3)
->>>>>>> main
 		news_label.text = "Plate annotations loading..."
 	else:
 		left_column.size_flags_stretch_ratio = 0.3
 		center_column.size_flags_stretch_ratio = 0.4
 		right_column.size_flags_stretch_ratio = 0.3
-<<<<<<< codex/add-medical-chart-theme-option
-		if left_column.get_index() != 0:
-			root_hbox.move_child(left_column, 0)
-		if center_column.get_index() != 2:
-			root_hbox.move_child(center_column, 2)
-		if right_column.get_index() != root_hbox.get_child_count() - 1:
-			root_hbox.move_child(right_column, root_hbox.get_child_count() - 1)
-
-func _build_entity_art() -> void:
-	if is_instance_valid(anatomy_overlay):
-		anatomy_overlay.queue_free()
-		anatomy_overlay = null
-=======
 		if root_hbox.get_child(0) != left_column:
 			root_hbox.move_child(left_column, 0)
 			root_hbox.move_child(center_column, 2)
@@ -397,7 +369,6 @@ func _build_entity_art() -> void:
 func _build_entity_art() -> void:
 	if anatomy_overlay and is_instance_valid(anatomy_overlay):
 		anatomy_overlay.queue_free()
->>>>>>> main
 	if not ThemeManager.is_medical():
 		entity.material = default_entity_material
 		return

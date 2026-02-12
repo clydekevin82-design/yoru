@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 PixelFilter="*res://scenes/pixel_filter_overlay.tscn"
+ThemeManager="*res://scripts/theme_manager.gd"
 
 [display]
 

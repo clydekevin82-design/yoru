@@ -145,6 +145,8 @@ var news_strings = [
 const FloatingTextScript = preload("res://scripts/floating_text.gd")
 
 func _ready():
+	ThemeManager.theme_changed.connect(_apply_theme)
+	_apply_theme(ThemeManager.current_theme)
 	_load_game()
 	_update_ui()
 	_populate_store()
@@ -154,6 +156,29 @@ func _ready():
 	entity.scale = Vector2.ZERO
 	var tween = create_tween()
 	tween.tween_property(entity, "scale", Vector2.ONE, 1.0).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+
+
+func _apply_theme(_theme_id: String) -> void:
+	var palette: Dictionary = ThemeManager.get_palette()
+	$Background.color = palette["background"]
+	score_label.add_theme_color_override("font_color", palette["text"])
+	cps_label.add_theme_color_override("font_color", palette["muted_text"])
+	news_label.add_theme_color_override("font_color", palette["text"])
+	entity.color = palette["blood"]
+	blood_fill.color = palette["blood"]
+
+	for button in [$HBox/CenterColumn/HeaderContainer/DashboardBtn, $HBox/CenterColumn/HeaderContainer/SaveBtn, $HBox/CenterColumn/HeaderContainer/ExportBtn]:
+		button.add_theme_color_override("font_color", palette["text"])
+
+	var news_style := StyleBoxFlat.new()
+	news_style.bg_color = palette["surface"]
+	news_style.border_color = palette["line"]
+	news_style.border_width_left = 2
+	news_style.border_width_top = 2
+	news_style.border_width_right = 2
+	news_style.border_width_bottom = 2
+	$HBox/CenterColumn/HeaderContainer/NewsPanel.add_theme_stylebox_override("panel", news_style)
 
 func _process(delta):
 	# Passive Income

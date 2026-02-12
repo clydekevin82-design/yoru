@@ -19,44 +19,112 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(1, 1, 1, 1)
+
+[node name="EtchingOverlay" type="ColorRect" parent="."]
+modulate = Color(0, 0, 0, 0.08)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
 
 [node name="Title" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_top = 100.0
-offset_bottom = 180.0
+offset_top = 88.0
+offset_bottom = 168.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("1_alice")
 theme_override_font_sizes/font_size = 64
-text = "- SETTINGS -"
+text = "SETTINGS"
 horizontal_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="Subtitle" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 168.0
+offset_bottom = 208.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("1_alice")
+theme_override_font_sizes/font_size = 24
+text = "Tune presentation and visual language"
+horizontal_alignment = 1
+
+[node name="AccentLine" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -100.0
-offset_right = 200.0
-offset_bottom = 100.0
+offset_left = -320.0
+offset_top = -200.0
+offset_right = 320.0
+offset_bottom = -196.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 40
 
-[node name="VolumeLabel" type="Label" parent="VBoxContainer"]
+[node name="Card" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -190.0
+offset_right = 340.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Card"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_constants/separation = 24
+
+[node name="Padding" type="MarginContainer" parent="Card/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 8
+
+[node name="VolumeLabel" type="Label" parent="Card/VBoxContainer/Padding"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("1_alice")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 30
 text = "Sound: ON"
-horizontal_alignment = 1
+
+[node name="ThemeRow" type="HBoxContainer" parent="Card/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ThemeLabel" type="Label" parent="Card/VBoxContainer/ThemeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("1_alice")
+theme_override_font_sizes/font_size = 28
+text = "Visual Theme"
+
+[node name="ThemeOption" type="OptionButton" parent="Card/VBoxContainer/ThemeRow"]
+custom_minimum_size = Vector2(320, 54)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_alice")
+theme_override_font_sizes/font_size = 22
+
+[node name="ThemeDescription" type="Label" parent="Card/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_alice")
+theme_override_font_sizes/font_size = 22
+text = ""
+autowrap_mode = 3
 
 [node name="BackButton" type="Button" parent="."]
 layout_mode = 1
@@ -65,15 +133,14 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -150.0
-offset_right = 100.0
-offset_bottom = -90.0
+offset_left = -120.0
+offset_top = -132.0
+offset_right = 120.0
+offset_bottom = -74.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("1_alice")
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 40
 text = "[back]"
 flat = true
 

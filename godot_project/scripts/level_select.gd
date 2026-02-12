@@ -12,6 +12,11 @@ extends Control
 @onready var dashboard_panel = $DashboardPanel
 @onready var blood_fill = $HBox/LeftColumn/BloodFill
 @onready var camera = $Camera2D
+@onready var root_hbox: HBoxContainer = $HBox
+@onready var left_column: Control = $HBox/LeftColumn
+@onready var center_column: VBoxContainer = $HBox/CenterColumn
+@onready var right_column: VBoxContainer = $HBox/RightColumn
+@onready var entity_container: Control = $HBox/LeftColumn/EntityContainer
 
 # Game State
 var essence: float = 0.0
@@ -21,6 +26,10 @@ const BLOOD_FILL_CAP = 90000.0
 
 # Visuals
 var shake_intensity: float = 0.0
+var diagnosis_streak: int = 0
+var diagnosis_multiplier: float = 1.0
+var anatomy_overlay: Node2D
+var default_entity_material: Material
 
 var achievements = {
 	"first_click": false,
@@ -56,7 +65,6 @@ const RANDOM_MESSAGES = [
 const SPAM_MESSAGE = "You don’t have to keep doing that."
 const STOP_MESSAGE = "…why did you stop?"
 
-# Item Definitions
 # Item Definitions
 var items = {
 	"cursed_finger": {
@@ -145,15 +153,46 @@ var news_strings = [
 const FloatingTextScript = preload("res://scripts/floating_text.gd")
 
 func _ready():
+	ThemeManager.theme_changed.connect(_apply_theme)
+	default_entity_material = entity.material
 	_load_game()
-	_update_ui()
 	_populate_store()
 	_start_news_ticker()
-	
-	# Animate entity entrance
+	_apply_theme(ThemeManager.current_theme)
+	_update_ui()
+
 	entity.scale = Vector2.ZERO
 	var tween = create_tween()
 	tween.tween_property(entity, "scale", Vector2.ONE, 1.0).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+
+
+func _apply_theme(_theme_id: String) -> void:
+	var palette: Dictionary = ThemeManager.get_palette()
+	$Background.color = palette["background"]
+	score_label.add_theme_color_override("font_color", palette["text"])
+	cps_label.add_theme_color_override("font_color", palette["muted_text"])
+	news_label.add_theme_color_override("font_color", palette["text"])
+	entity.color = palette["blood"]
+	blood_fill.color = palette["blood"]
+
+	for button in [$HBox/CenterColumn/HeaderContainer/DashboardBtn, $HBox/CenterColumn/HeaderContainer/SaveBtn, $HBox/CenterColumn/HeaderContainer/ExportBtn]:
+		button.add_theme_color_override("font_color", palette["text"])
+
+	var news_style := StyleBoxFlat.new()
+	news_style.bg_color = palette["surface"]
+	news_style.border_color = palette["line"]
+	news_style.border_width_left = 2
+	news_style.border_width_top = 2
+	news_style.border_width_right = 2
+	news_style.border_width_bottom = 2
+	$HBox/CenterColumn/HeaderContainer/NewsPanel.add_theme_stylebox_override("panel", news_style)
+
+	_configure_layout_for_theme()
+	_refresh_store_texts()
+	_rebuild_visual_icons()
+	_build_entity_art()
+	_update_ui()
 
 func _process(delta):
 	# Passive Income
@@ -214,7 +253,7 @@ func _spawn_popup_message(text, pos, is_subtle = false):
 	var label = Label.new()
 	label.text = text
 	label.theme_type_variation = "HeaderLarge"
-	label.add_theme_color_override("font_color", Color.BLACK)
+	label.add_theme_color_override("font_color", ThemeManager.get_palette()["line"])
 	label.add_theme_font_size_override("font_size", 32 if is_subtle else 48)
 	
 	add_child(label)
@@ -230,8 +269,12 @@ func _spawn_popup_message(text, pos, is_subtle = false):
 
 func _update_ui():
 	# Update Labels
-	score_label.text = "%d ESSENCE" % int(essence)
-	cps_label.text = "per second: %.1f" % cps
+	if ThemeManager.is_medical():
+		score_label.text = "%d CASE NOTES" % int(essence)
+		cps_label.text = "throughput: %.1f/s  |  precision x%.1f" % [cps, diagnosis_multiplier]
+	else:
+		score_label.text = "%d ESSENCE" % int(essence)
+		cps_label.text = "per second: %.1f" % cps
 	
 	# Update Blood Fill
 	if blood_fill:
@@ -254,13 +297,13 @@ func _update_ui():
 
 	
 	# Update Store Buttons
-	# Update Store Buttons
 	for child in store_container.get_children():
 		if child is Button:
 			var item_id = child.get_meta("item_id")
 			var cost = _get_item_cost(item_id)
 			child.disabled = essence < cost
-			child.text = "%s - %d" % [items[item_id]["name"], cost]
+			var item_display = ThemeManager.get_item_display(item_id)
+			child.text = "%s %s  ·  %d" % [item_display["icon"], item_display["name"], cost]
 			
 			# Unlock Logic
 			if not child.visible:
@@ -268,6 +311,94 @@ func _update_ui():
 					child.visible = true
 					_shake_screen(2.0)
 					_spawn_popup_message("New Item Unlocked", _get_random_screen_pos(), true)
+
+
+func _get_click_gain() -> float:
+	if ThemeManager.is_medical():
+		return diagnosis_multiplier
+	return 1.0
+
+func _update_diagnosis_state() -> void:
+	if not ThemeManager.is_medical():
+		diagnosis_streak = 0
+		diagnosis_multiplier = 1.0
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	var cadence := now - last_click_time
+	if cadence > 0.12 and cadence < 0.55:
+		diagnosis_streak += 1
+	else:
+		diagnosis_streak = 0
+	diagnosis_multiplier = min(2.4, 1.0 + floor(float(diagnosis_streak) / 6.0) * 0.2)
+
+func _refresh_store_texts() -> void:
+	for child in store_container.get_children():
+		if child is Button:
+			var item_id = child.get_meta("item_id")
+			var item_display = ThemeManager.get_item_display(item_id)
+			child.text = "%s %s" % [item_display["icon"], item_display["name"]]
+
+func _rebuild_visual_icons() -> void:
+	for row in visuals_container.get_children():
+		for icon in row.get_children():
+			if icon.has_meta("item_id"):
+				var item_id = str(icon.get_meta("item_id"))
+				var item_display = ThemeManager.get_item_display(item_id)
+				if icon is Label:
+					icon.text = item_display["icon"]
+					icon.add_theme_color_override("font_color", ThemeManager.get_palette()["line"])
+
+func _configure_layout_for_theme() -> void:
+	if ThemeManager.is_medical():
+		left_column.size_flags_stretch_ratio = 0.38
+		center_column.size_flags_stretch_ratio = 0.36
+		right_column.size_flags_stretch_ratio = 0.26
+		if root_hbox.get_child(0) != right_column:
+			root_hbox.move_child(right_column, 0)
+			root_hbox.move_child(left_column, 1)
+			root_hbox.move_child(center_column, 3)
+		news_label.text = "Plate annotations loading..."
+	else:
+		left_column.size_flags_stretch_ratio = 0.3
+		center_column.size_flags_stretch_ratio = 0.4
+		right_column.size_flags_stretch_ratio = 0.3
+		if root_hbox.get_child(0) != left_column:
+			root_hbox.move_child(left_column, 0)
+			root_hbox.move_child(center_column, 2)
+			root_hbox.move_child(right_column, 4)
+
+func _build_entity_art() -> void:
+	if anatomy_overlay and is_instance_valid(anatomy_overlay):
+		anatomy_overlay.queue_free()
+	if not ThemeManager.is_medical():
+		entity.material = default_entity_material
+		return
+
+	entity.material = null
+	anatomy_overlay = Node2D.new()
+	anatomy_overlay.name = "AnatomyOverlay"
+	entity_container.add_child(anatomy_overlay)
+	anatomy_overlay.position = Vector2(190, 190)
+
+	var palette = ThemeManager.get_palette()
+	var ribcage := Line2D.new()
+	ribcage.default_color = palette["line"]
+	ribcage.width = 2.0
+	ribcage.points = PackedVector2Array([Vector2(-60, -110), Vector2(-70, -40), Vector2(-55, 20), Vector2(-25, 95), Vector2(0, 130), Vector2(24, 94), Vector2(52, 20), Vector2(66, -40), Vector2(58, -108)])
+	anatomy_overlay.add_child(ribcage)
+
+	var vein := Line2D.new()
+	vein.default_color = palette["blood"]
+	vein.width = 1.8
+	vein.points = PackedVector2Array([Vector2(0, -122), Vector2(-7, -72), Vector2(10, -18), Vector2(-8, 34), Vector2(8, 96)])
+	anatomy_overlay.add_child(vein)
+
+	var note := Label.new()
+	note.text = "Plate VII-B\nLeft ventricle"
+	note.position = Vector2(84, -130)
+	note.add_theme_font_size_override("font_size", 16)
+	note.add_theme_color_override("font_color", palette["muted_text"])
+	anatomy_overlay.add_child(note)
 
 func _shake_screen(intensity):
 	shake_intensity = max(shake_intensity, intensity)
@@ -281,7 +412,8 @@ func _populate_store():
 		child.queue_free()
 	for item_id in items:
 		var btn = Button.new()
-		btn.text = items[item_id]["name"]
+		var item_display = ThemeManager.get_item_display(item_id)
+		btn.text = "%s %s" % [item_display["icon"], item_display["name"]]
 		btn.tooltip_text = items[item_id]["desc"] + "\n+" + str(items[item_id]["base_cps"]) + " cps"
 		btn.set_meta("item_id", item_id)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -303,7 +435,8 @@ func _on_buy_item(item_id):
 		_trigger_achievement("first_buy")
 
 func _click_entity():
-	essence += 1
+	_update_diagnosis_state()
+	essence += _get_click_gain()
 	total_clicks += 1
 	_update_ui()
 	_check_achievements()
@@ -370,9 +503,15 @@ func _add_visual_icon(item_id):
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
 		row.add_theme_constant_override("separation", 8)
 		visuals_container.add_child(row)
-	var icon = ColorRect.new()
+	var icon = Label.new()
 	icon.custom_minimum_size = Vector2(30, 30)
-	icon.color = Color(0, 0, 0, 0.8)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon.set_meta("item_id", item_id)
+	var item_display = ThemeManager.get_item_display(item_id)
+	icon.text = item_display["icon"]
+	icon.add_theme_font_size_override("font_size", 24)
+	icon.add_theme_color_override("font_color", ThemeManager.get_palette()["line"])
 	row.add_child(icon)
 
 # --- Standard UI stuff ---
@@ -381,7 +520,7 @@ func _spawn_floating_text(text_value, pos):
 	label.text = text_value
 	label.theme_type_variation = "HeaderLarge"
 	label.add_theme_font_size_override("font_size", 48)
-	label.add_theme_color_override("font_color", Color.BLACK)
+	label.add_theme_color_override("font_color", ThemeManager.get_palette()["line"])
 	label.set_script(FloatingTextScript)
 	add_child(label)
 	label.global_position = pos
@@ -396,6 +535,8 @@ func _start_news_ticker():
 
 func _cycle_news():
 	var text = news_strings.pick_random()
+	if ThemeManager.is_medical():
+		text = ["Plate margin note: maintain steady hand.", "Copperplate revision approved by attending.", "Vein trace recovered from archival sheet.", "Specimen ledger updated."].pick_random()
 	news_label.text = ""
 	var tween = create_tween()
 	tween.tween_property(news_label, "text", text, 2.0).set_trans(Tween.TRANS_LINEAR)

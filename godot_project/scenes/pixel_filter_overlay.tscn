@@ -1,13 +1,19 @@
-[gd_scene load_steps=3 format=3 uid="uid://pixel_filter_overlay"]
+[gd_scene load_steps=4 format=3 uid="uid://pixel_filter_overlay"]
 
 [ext_resource type="Shader" path="res://shaders/pixel_filter.gdshader" id="1_shader"]
+[ext_resource type="Script" path="res://scripts/pixel_filter_overlay.gd" id="2_script"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_filter"]
 shader = ExtResource("1_shader")
 shader_parameter/pixel_size = 2.0
+shader_parameter/sketch_strength = 0.0
+shader_parameter/ink_color = Color(0.2, 0.18, 0.16, 1)
+shader_parameter/paper_tint = Color(1, 1, 1, 1)
+shader_parameter/time_scale = 0.45
 
 [node name="PixelFilterOverlay" type="CanvasLayer"]
 layer = 100
+script = ExtResource("2_script")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = SubResource("ShaderMaterial_filter")

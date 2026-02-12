@@ -1,8 +1,9 @@
-[gd_scene format=3 uid="uid://b8fj2s6d5f4h4"]
+[gd_scene format=3 uid="uid://c40s1nlhx3g52"]
 
-[ext_resource type="Script" path="res://scripts/level_select.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://c4ntn1m8i853o" path="res://scripts/level_select.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://bk5pp5f5rfd0s" path="res://Alice-Regular.ttf" id="2_alice"]
-[ext_resource type="Shader" path="res://shaders/sinister_blob.gdshader" id="3_blob"]
+[ext_resource type="Shader" uid="uid://pxn11k4xessx" path="res://shaders/sinister_blob.gdshader" id="3_blob"]
+[ext_resource type="Script" uid="uid://cmy613d0t2ix6" path="res://scripts/interactive_fluid.gd" id="4_fluid"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_blob"]
 shader = ExtResource("3_blob")
@@ -11,16 +12,8 @@ shader_parameter/wobble_amount = 0.1
 shader_parameter/distortion_strength = 1.0
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_vert"]
-color = Color(0, 0, 0, 1)
 thickness = 6
 vertical = true
-
-[sub_resource type="Curve" id="Curve_particles"]
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -2.8, 0.0, 0, 0]
-point_count = 2
-
-[sub_resource type="Gradient" id="Gradient_particles"]
-colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(1, 1, 1, 1)
@@ -30,7 +23,14 @@ border_width_right = 6
 border_width_bottom = 6
 border_color = Color(0, 0, 0, 1)
 
-[node name="Game" type="Control"]
+[sub_resource type="Curve" id="Curve_particles"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -2.8, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_particles"]
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 0)
+
+[node name="Game" type="Control" unique_id=1044369001]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -39,16 +39,18 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=371775172]
+position = Vector2(961, 540)
+
+[node name="Background" type="ColorRect" parent="." unique_id=588046943]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(1, 1, 1, 1)
 
-[node name="HBox" type="HBoxContainer" parent="."]
+[node name="HBox" type="HBoxContainer" parent="." unique_id=1613740753]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -57,12 +59,22 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="LeftColumn" type="Control" parent="HBox"]
+[node name="LeftColumn" type="Control" parent="HBox" unique_id=871820870]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.3
 
-[node name="ScoreLabel" type="Label" parent="HBox/LeftColumn"]
+[node name="BloodFill" type="Control" parent="HBox/LeftColumn" unique_id=1608053232]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_fluid")
+color = Color(0.4017621, 0.006257786, 0.006235796, 1)
+
+[node name="ScoreLabel" type="Label" parent="HBox/LeftColumn" unique_id=1714504691]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -75,7 +87,7 @@ theme_override_font_sizes/font_size = 64
 text = "0 ESSENCE"
 horizontal_alignment = 1
 
-[node name="CPSLabel" type="Label" parent="HBox/LeftColumn"]
+[node name="CPSLabel" type="Label" parent="HBox/LeftColumn" unique_id=1933117884]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -88,7 +100,7 @@ theme_override_font_sizes/font_size = 32
 text = "per second: 0.0"
 horizontal_alignment = 1
 
-[node name="EntityContainer" type="Control" parent="HBox/LeftColumn"]
+[node name="EntityContainer" type="Control" parent="HBox/LeftColumn" unique_id=1189594732]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -102,7 +114,7 @@ offset_bottom = 190.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Entity" type="ColorRect" parent="HBox/LeftColumn/EntityContainer"]
+[node name="Entity" type="ColorRect" parent="HBox/LeftColumn/EntityContainer" unique_id=7723500]
 material = SubResource("ShaderMaterial_blob")
 layout_mode = 1
 anchors_preset = 15
@@ -112,7 +124,7 @@ grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(190, 190)
 
-[node name="Hitbox" type="Button" parent="HBox/LeftColumn/EntityContainer/Entity"]
+[node name="Hitbox" type="Button" parent="HBox/LeftColumn/EntityContainer/Entity" unique_id=1255248650]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 15
@@ -121,21 +133,21 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VSeparator1" type="VSeparator" parent="HBox"]
+[node name="VSeparator1" type="VSeparator" parent="HBox" unique_id=808039770]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxLine_vert")
 
-[node name="CenterColumn" type="VBoxContainer" parent="HBox"]
+[node name="CenterColumn" type="VBoxContainer" parent="HBox" unique_id=642437421]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.4
 
-[node name="HeaderContainer" type="HBoxContainer" parent="HBox/CenterColumn"]
+[node name="HeaderContainer" type="HBoxContainer" parent="HBox/CenterColumn" unique_id=2020642165]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="DashboardBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer"]
+[node name="DashboardBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer" unique_id=1403989834]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -143,7 +155,7 @@ theme_override_font_sizes/font_size = 24
 text = "Dashboard"
 flat = true
 
-[node name="SaveBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer"]
+[node name="SaveBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer" unique_id=1623884165]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -151,11 +163,11 @@ theme_override_font_sizes/font_size = 24
 text = "Save"
 flat = true
 
-[node name="NewsPanel" type="PanelContainer" parent="HBox/CenterColumn/HeaderContainer"]
+[node name="NewsPanel" type="PanelContainer" parent="HBox/CenterColumn/HeaderContainer" unique_id=1478137283]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="NewsLabel" type="Label" parent="HBox/CenterColumn/HeaderContainer/NewsPanel"]
+[node name="NewsLabel" type="Label" parent="HBox/CenterColumn/HeaderContainer/NewsPanel" unique_id=1857927131]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -165,7 +177,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="ExportBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer"]
+[node name="ExportBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer" unique_id=171069923]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -173,7 +185,7 @@ theme_override_font_sizes/font_size = 24
 text = "Export"
 flat = true
 
-[node name="SupportBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer"]
+[node name="SupportBtn" type="Button" parent="HBox/CenterColumn/HeaderContainer" unique_id=1639501103]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -181,30 +193,30 @@ theme_override_font_sizes/font_size = 24
 text = "Buy me a coffee"
 flat = true
 
-[node name="HSeparator" type="HSeparator" parent="HBox/CenterColumn"]
+[node name="HSeparator" type="HSeparator" parent="HBox/CenterColumn" unique_id=9732359]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="ScrollContainer" type="ScrollContainer" parent="HBox/CenterColumn"]
+[node name="ScrollContainer" type="ScrollContainer" parent="HBox/CenterColumn" unique_id=254996216]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="VisualsContainer" type="VBoxContainer" parent="HBox/CenterColumn/ScrollContainer"]
+[node name="VisualsContainer" type="VBoxContainer" parent="HBox/CenterColumn/ScrollContainer" unique_id=141524162]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 alignment = 2
 
-[node name="VSeparator2" type="VSeparator" parent="HBox"]
+[node name="VSeparator2" type="VSeparator" parent="HBox" unique_id=1587604705]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxLine_vert")
 
-[node name="RightColumn" type="VBoxContainer" parent="HBox"]
+[node name="RightColumn" type="VBoxContainer" parent="HBox" unique_id=1102431510]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.3
 
-[node name="StoreLabel" type="Label" parent="HBox/RightColumn"]
+[node name="StoreLabel" type="Label" parent="HBox/RightColumn" unique_id=966508503]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -212,16 +224,16 @@ theme_override_font_sizes/font_size = 48
 text = "STORE"
 horizontal_alignment = 1
 
-[node name="StoreList" type="ScrollContainer" parent="HBox/RightColumn"]
+[node name="StoreList" type="ScrollContainer" parent="HBox/RightColumn" unique_id=840181303]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="StoreContainer" type="VBoxContainer" parent="HBox/RightColumn/StoreList"]
+[node name="StoreContainer" type="VBoxContainer" parent="HBox/RightColumn/StoreList" unique_id=605492981]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="DashboardPanel" type="PanelContainer" parent="."]
+[node name="DashboardPanel" type="PanelContainer" parent="." unique_id=1492930685]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -237,11 +249,11 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="VBox" type="VBoxContainer" parent="DashboardPanel"]
+[node name="VBox" type="VBoxContainer" parent="DashboardPanel" unique_id=611153465]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Title" type="Label" parent="DashboardPanel/VBox"]
+[node name="Title" type="Label" parent="DashboardPanel/VBox" unique_id=331018730]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -249,7 +261,7 @@ theme_override_font_sizes/font_size = 48
 text = "- DASHBOARD -"
 horizontal_alignment = 1
 
-[node name="AchievementsLabel" type="Label" parent="DashboardPanel/VBox"]
+[node name="AchievementsLabel" type="Label" parent="DashboardPanel/VBox" unique_id=1445252314]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -257,12 +269,12 @@ theme_override_font_sizes/font_size = 32
 text = "ACHIEVEMENTS"
 horizontal_alignment = 1
 
-[node name="BuffsContainer" type="HFlowContainer" parent="DashboardPanel/VBox"]
+[node name="BuffsContainer" type="HFlowContainer" parent="DashboardPanel/VBox" unique_id=1883003966]
 layout_mode = 2
 size_flags_vertical = 3
 alignment = 1
 
-[node name="CloseBtn" type="Button" parent="DashboardPanel/VBox"]
+[node name="CloseBtn" type="Button" parent="DashboardPanel/VBox" unique_id=234691454]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_alice")
@@ -270,7 +282,7 @@ theme_override_font_sizes/font_size = 32
 text = "[close]"
 flat = true
 
-[node name="ClickParticles" type="CPUParticles2D" parent="."]
+[node name="ClickParticles" type="CPUParticles2D" parent="." unique_id=1608735260]
 emitting = false
 amount = 16
 lifetime = 0.6
@@ -288,9 +300,9 @@ scale_amount_curve = SubResource("Curve_particles")
 color = Color(0, 0, 0, 0.8)
 color_ramp = SubResource("Gradient_particles")
 
+[connection signal="gui_input" from="HBox/LeftColumn/EntityContainer/Entity/Hitbox" to="." method="_on_entity_gui_input"]
 [connection signal="pressed" from="HBox/CenterColumn/HeaderContainer/DashboardBtn" to="." method="_on_dashboard_pressed"]
 [connection signal="pressed" from="HBox/CenterColumn/HeaderContainer/SaveBtn" to="." method="_on_save_pressed"]
 [connection signal="pressed" from="HBox/CenterColumn/HeaderContainer/ExportBtn" to="." method="_on_export_pressed"]
 [connection signal="pressed" from="HBox/CenterColumn/HeaderContainer/SupportBtn" to="." method="_on_support_pressed"]
-[connection signal="gui_input" from="HBox/LeftColumn/EntityContainer/Entity/Hitbox" to="." method="_on_entity_gui_input"]
 [connection signal="pressed" from="DashboardPanel/VBox/CloseBtn" to="." method="_on_dashboard_close_pressed"]

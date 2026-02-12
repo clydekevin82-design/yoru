@@ -10,13 +10,25 @@ extends Control
 @onready var click_particles = $ClickParticles
 @onready var buffs_container = $DashboardPanel/VBox/BuffsContainer
 @onready var dashboard_panel = $DashboardPanel
+@onready var blood_fill = $HBox/LeftColumn/BloodFill
+@onready var camera = $Camera2D
 
 # Game State
 var essence: float = 0.0
 var cps: float = 0.0
+var total_clicks: int = 0
+const BLOOD_FILL_CAP = 90000.0
+
+# Visuals
+var shake_intensity: float = 0.0
+
 var achievements = {
 	"first_click": false,
-	"first_buy": false
+	"first_buy": false,
+	"dedicated_clicker": false, # 1000 clicks
+	"carpometacarpal_boss": false, # 10000 clicks
+	"hoarder": false, # Buy 10 of an item
+	"architect_of_doom": false # Buy 50 items total
 }
 const SAVE_PATH = "user://save_game.dat"
 
@@ -45,33 +57,76 @@ const SPAM_MESSAGE = "You don’t have to keep doing that."
 const STOP_MESSAGE = "…why did you stop?"
 
 # Item Definitions
+# Item Definitions
 var items = {
-	"ritual_dagger": {
-		"name": "Ritual Dagger",
+	"cursed_finger": {
+		"name": "Cursed Finger",
 		"base_cost": 15,
 		"base_cps": 0.5,
+		"desc": "It twitches on its own.",
+		"count": 0
+	},
+	"ritual_dagger": {
+		"name": "Ritual Dagger",
+		"base_cost": 100,
+		"base_cps": 2.0,
 		"desc": "Sharpened on bone.",
+		"count": 0
+	},
+	"blood_vial": {
+		"name": "Blood Vial",
+		"base_cost": 500,
+		"base_cps": 8.0,
+		"desc": "Iron rich.",
 		"count": 0
 	},
 	"lost_soul": {
 		"name": "Lost Soul",
-		"base_cost": 100,
-		"base_cps": 2.0,
+		"base_cost": 2000,
+		"base_cps": 25.0,
 		"desc": "It whispers secrets.",
 		"count": 0
 	},
-	"void_crystal": {
-		"name": "Void Crystal",
-		"base_cost": 500,
-		"base_cps": 8.0,
-		"desc": "Humming with dark energy.",
+	"sacrificial_lamb": {
+		"name": "Sacrificial Lamb",
+		"base_cost": 8000,
+		"base_cps": 80.0,
+		"desc": "A necessary loss.",
 		"count": 0
 	},
-	"elder_totem": {
-		"name": "Elder Totem",
-		"base_cost": 2000,
-		"base_cps": 25.0,
-		"desc": "The wood is older than time.",
+	"haunted_mirror": {
+		"name": "Haunted Mirror",
+		"base_cost": 40000,
+		"base_cps": 250.0,
+		"desc": "Don't look too long.",
+		"count": 0
+	},
+	"demon_contract": {
+		"name": "Demon Contract",
+		"base_cost": 200000,
+		"base_cps": 1000.0,
+		"desc": "Signed in blood.",
+		"count": 0
+	},
+	"hell_gate": {
+		"name": "Hell Gate",
+		"base_cost": 1500000,
+		"base_cps": 5000.0,
+		"desc": "It's getting warm.",
+		"count": 0
+	},
+	"shattered_reality": {
+		"name": "Shattered Reality",
+		"base_cost": 20000000,
+		"base_cps": 35000.0,
+		"desc": "Physics is a suggestion.",
+		"count": 0
+	},
+	"eldritch_god": {
+		"name": "Eldritch God",
+		"base_cost": 500000000,
+		"base_cps": 200000.0,
+		"desc": "It watches you.",
 		"count": 0
 	}
 }
@@ -107,6 +162,17 @@ func _process(delta):
 		_update_ui()
 	
 	_handle_behavior(delta)
+	
+	# Shake Decay
+	if shake_intensity > 0:
+		shake_intensity = lerp(shake_intensity, 0.0, delta * 10.0)
+		camera.offset = Vector2(randf_range(-shake_intensity, shake_intensity), randf_range(-shake_intensity, shake_intensity))
+	
+	# Debug: Add essence
+	if Input.is_physical_key_pressed(KEY_M):
+		essence += 100000 * delta
+		_update_ui()
+
 
 func _handle_behavior(delta):
 	var time = Time.get_ticks_msec() / 1000.0
@@ -167,6 +233,27 @@ func _update_ui():
 	score_label.text = "%d ESSENCE" % int(essence)
 	cps_label.text = "per second: %.1f" % cps
 	
+	# Update Blood Fill
+	if blood_fill:
+		var fill_ratio = clamp(essence / BLOOD_FILL_CAP, 0.0, 1.0)
+		blood_fill.target_fill_percent = fill_ratio
+		
+		# Update max height dynamically in case of resize (or do it in _process, but this is fine for now)
+		# The entity is inside EntityContainer which is centered.
+		# Lets ensure we know where the bottom of the entity is relative to the BloodFill control.
+		# EntityContainer is centered, Entity is inside it.
+		# We want the fluid to stop at the bottom of the entity.
+		
+		# Use global coordinates to be safe
+		var entity_bottom_y = entity.global_position.y + entity.size.y * entity.scale.y
+		var col_bottom_y = blood_fill.global_position.y + blood_fill.size.y
+		
+		# Distance from bottom of screen (fluid bottom) to bottom of entity.
+		var max_h = col_bottom_y - entity_bottom_y
+		blood_fill.max_height_pixels = max_h
+
+	
+	# Update Store Buttons
 	# Update Store Buttons
 	for child in store_container.get_children():
 		if child is Button:
@@ -174,6 +261,16 @@ func _update_ui():
 			var cost = _get_item_cost(item_id)
 			child.disabled = essence < cost
 			child.text = "%s - %d" % [items[item_id]["name"], cost]
+			
+			# Unlock Logic
+			if not child.visible:
+				if essence >= items[item_id]["base_cost"] * 0.6: # Reveal at 60% of base cost
+					child.visible = true
+					_shake_screen(2.0)
+					_spawn_popup_message("New Item Unlocked", _get_random_screen_pos(), true)
+
+func _shake_screen(intensity):
+	shake_intensity = max(shake_intensity, intensity)
 
 func _get_item_cost(item_id):
 	var item = items[item_id]
@@ -191,6 +288,7 @@ func _populate_store():
 		btn.pressed.connect(_on_buy_item.bind(item_id))
 		btn.custom_minimum_size = Vector2(0, 70)
 		btn.add_theme_font_size_override("font_size", 24)
+		btn.visible = false # Hidden by default
 		store_container.add_child(btn)
 
 func _on_buy_item(item_id):
@@ -201,11 +299,14 @@ func _on_buy_item(item_id):
 		cps += items[item_id]["base_cps"]
 		_update_ui()
 		_add_visual_icon(item_id)
+		_check_achievements()
 		_trigger_achievement("first_buy")
 
 func _click_entity():
 	essence += 1
+	total_clicks += 1
 	_update_ui()
+	_check_achievements()
 	_trigger_achievement("first_click")
 	
 	# Time
@@ -245,6 +346,20 @@ func _spawn_achievement_tile(id):
 	tile.modulate.a = 0.0
 	var tween = create_tween()
 	tween.tween_property(tile, "modulate:a", 1.0, 1.0)
+
+func _check_achievements():
+	# Click achievements
+	if total_clicks >= 1000: _trigger_achievement("dedicated_clicker")
+	if total_clicks >= 10000: _trigger_achievement("carpometacarpal_boss")
+	
+	# Item achievements
+	var total_items = 0
+	for id in items:
+		var count = items[id]["count"]
+		total_items += count
+		if count >= 10: _trigger_achievement("hoarder")
+	
+	if total_items >= 50: _trigger_achievement("architect_of_doom")
 	
 # Store Logic & Visuals
 func _add_visual_icon(item_id):
@@ -310,6 +425,7 @@ func _on_support_pressed():
 func _create_save_dict():
 	return {
 		"essence": essence,
+		"total_clicks": total_clicks,
 		"items": items,
 		"achievements": achievements
 	}
@@ -334,6 +450,7 @@ func _load_game():
 		
 		# Restore Data
 		if node_data.has("essence"): essence = node_data["essence"]
+		if node_data.has("total_clicks"): total_clicks = int(node_data["total_clicks"])
 		if node_data.has("achievements"):
 			achievements = node_data["achievements"]
 			# Restore tiles
